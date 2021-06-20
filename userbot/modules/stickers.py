@@ -1,9 +1,9 @@
 # Copyright (C) 2019 The Raphielscape Company LLC.
 #
-# Licensed under the Raphielscape Public License, Version 1.c (the "License");
+# Licensed under the Raphielscape Public License, Version 1.d (the "License");
 # you may not use this file except in compliance with the License.
 #
-""" Userbot module for kanging stickers or making new ones. Thanks @rupansh"""
+"""Userbot module for kanging stickers or making new ones. Thanks @rupansh"""
 
 import io
 import math
@@ -24,27 +24,20 @@ from userbot import CMD_HELP, bot
 from userbot.events import register
 
 KANGING_STR = [
-    "Eh... Koq bagus... aku curry ahhh :3",
-    "Aku curry ya kakak :)",
-    "Curry Sticker dulu yee kan",
-    "ehh, mantep nih.....aku ambil ya kaka",
-    "Bagus eaaaa....\nAmbil ahh....",
-    "Ini Sticker aku ambil yaa\nDUARR!",
-    "leh ugha ni Sticker\nCurry ahh~",
-    "Pim Pim Pom!!!\nni Sticker punya aing sekarang hehe",
-    "Bentar boss, ane curry dulu",
-    "Ihh, bagus nih\nCurry ahh~",
-    "Curry lagi yee kan.....",
-    "CURRY TROSS!!!",
-    "Curry Sticker ahh.....",
-    "Curry dolo boss",
-    "Swiper jangan mencurry",
+    "Aku ambil ini ya :3",
+    "Aku ambil ya kakak :)",
+    "Aku ambil lagi nih stickernya :v",
+    "wuiih, mantep nih...aku ambil ya nggak?",
+    "Bagus yeeaa..\nAmbil ahh..",
+    "Ini sticker aku ambil yaa\nDUARR!",
+    "leh ugha ni sticker",
+    "izin ngambil ya kakak :)",
 ]
 
 
-@register(outgoing=True, pattern=r"^\.curry")
+@register(outgoing=True, pattern=r"^\.ambil")
 async def kang(args):
-    """For .kang command, kangs stickers or creates new ones."""
+    """For .ambil command, kangs stickers or creates new ones."""
     user = await bot.get_me()
     if not user.username:
         user.username = user.first_name
@@ -83,9 +76,11 @@ async def kang(args):
             is_anim = True
             photo = 1
         else:
-            return await args.edit("`Unsupported File!`")
+            await args.edit("`Unsupported File!`")
+            return
     else:
-        return await args.edit("`I can't kang that...`")
+        await args.edit("`I can't kang that...`")
+        return
 
     if photo:
         splat = args.text.split()
@@ -105,8 +100,8 @@ async def kang(args):
                 # pack
                 emoji = splat[1]
 
-        packname = f"a{user.id}_by_{user.username}_{pack}"
-        packnick = f"@{user.username}'s kang pack Vol.{pack}"
+        packname = f"{user.username}{pack}"
+        packnick = f"{user.first_name} #{pack}"
         cmd = "/newpack"
         file = io.BytesIO()
 
@@ -137,8 +132,8 @@ async def kang(args):
                 x = await conv.get_response()
                 while "120" in x.text:
                     pack += 1
-                    packname = f"a{user.id}_by_{user.username}_{pack}"
-                    packnick = f"@{user.username}'s kang pack Vol.{pack}"
+                    packname = f"{user.username}{pack}"
+                    packnick = f"{user.first_name} Animated #{pack}"
                     await args.edit(
                         "`Switching to Pack "
                         + str(pack)
@@ -183,12 +178,13 @@ async def kang(args):
                         await conv.get_response()
                         # Ensure user doesn't get spamming notifications
                         await bot.send_read_acknowledge(conv.chat_id)
-                        return await args.edit(
-                            "`Sticker added in a Different Pack !"
-                            "\nThis Pack is Newly created!"
-                            f"\nYour pack can be found [here](t.me/addstickers/{packname})",
+                        await args.edit(
+                            f"`Sticker added in a Different Pack !\
+                            \nThis Pack is Newly created!\
+                            \nYour pack can be found [here](t.me/addstickers/{packname})",
                             parse_mode="md",
                         )
+                        return
                 if is_anim:
                     await conv.send_file("AnimatedSticker.tgs")
                     remove("AnimatedSticker.tgs")
@@ -197,9 +193,10 @@ async def kang(args):
                     await conv.send_file(file, force_document=True)
                 rsp = await conv.get_response()
                 if "Sorry, the file type is invalid." in rsp.text:
-                    return await args.edit(
+                    await args.edit(
                         "`Failed to add sticker, use` @Stickers `bot to add the sticker manually.`"
                     )
+                    return
                 await conv.send_message(emoji)
                 # Ensure user doesn't get spamming notifications
                 await bot.send_read_acknowledge(conv.chat_id)
@@ -227,9 +224,10 @@ async def kang(args):
                     await conv.send_file(file, force_document=True)
                 rsp = await conv.get_response()
                 if "Sorry, the file type is invalid." in rsp.text:
-                    return await args.edit(
+                    await args.edit(
                         "`Failed to add sticker, use` @Stickers `bot to add the sticker manually.`"
                     )
+                    return
                 await conv.send_message(emoji)
                 # Ensure user doesn't get spamming notifications
                 await bot.send_read_acknowledge(conv.chat_id)
@@ -253,7 +251,8 @@ async def kang(args):
                 await bot.send_read_acknowledge(conv.chat_id)
 
         await args.edit(
-            "Curry Success!" f"\n[Klik Disini](t.me/addstickers/{packname})",
+            f"Sticker Added Successfully :*\
+            \nUntuk melihat stickernya [Klik Disini!](t.me/addstickers/{packname})",
             parse_mode="md",
         )
 
@@ -286,20 +285,24 @@ async def resize_photo(photo):
 @register(outgoing=True, pattern=r"^\.stkrinfo$")
 async def get_pack_info(event):
     if not event.is_reply:
-        return await event.edit("`I can't fetch info from nothing, can I ?!`")
+        await event.edit("`I can't fetch info from nothing, can I ?!`")
+        return
 
     rep_msg = await event.get_reply_message()
     if not rep_msg.document:
-        return await event.edit("`Reply to a sticker to get the pack details`")
+        await event.edit("`Reply to a sticker to get the pack details`")
+        return
 
     try:
         stickerset_attr = rep_msg.document.attributes[1]
         await event.edit("`Fetching details of the sticker pack, please wait..`")
     except BaseException:
-        return await event.edit("`This is not a sticker. Reply to a sticker.`")
+        await event.edit("`This is not a sticker. Reply to a sticker.`")
+        return
 
     if not isinstance(stickerset_attr, DocumentAttributeSticker):
-        return await event.edit("`This is not a sticker. Reply to a sticker.`")
+        await event.edit("`This is not a sticker. Reply to a sticker.`")
+        return
 
     get_stickerset = await bot(
         GetStickerSetRequest(
@@ -326,7 +329,7 @@ async def get_pack_info(event):
     await event.edit(OUTPUT)
 
 
-@register(outgoing=True, pattern=r"^\.getsticker$")
+@register(outgoing=True, pattern=r"^\.get$")
 async def sticker_to_png(sticker):
     if not sticker.is_reply:
         await sticker.edit("`NULL information to fetch...`")
@@ -358,14 +361,15 @@ async def sticker_to_png(sticker):
 
 CMD_HELP.update(
     {
-        "stickers": ">`.curry`"
-        "\nUsage: Reply .curry to a sticker or an image to put it to your sticker pack."
-        "\n\n>`.curry (emoji['s]]?` [number]?"
-        "\nUsage: Curry the sticker/image to the specified pack. You can specify the emoji too. "
-        "(Default: 🤔)"
+        "stickers": ">`.ambil [emoji('s)]?`"
+        "\nUsage: Reply .ambil to a sticker or an image to kang it to your userbot pack "
+        "\nor specify the emoji you want to."
+        "\n\n>`.ambil (emoji['s]]?` [number]?"
+        "\nUsage: Kang's the sticker/image to the specified pack but uses 🤔 as emoji "
+        "or choose the emoji you want to."
         "\n\n>`.stkrinfo`"
         "\nUsage: Gets info about the sticker pack."
-        "\n\n>`.getsticker`"
-        "\nUsage: Reply to a sticker to get 'PNG' file of sticker."
+        "\n\n>`.get`"
+        "\nUsage: reply to a sticker to get 'PNG' file of sticker."
     }
 )
